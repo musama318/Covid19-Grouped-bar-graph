@@ -2,18 +2,28 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 import csv
+import requests
+from bs4 import BeautifulSoup
+import locale
 
-df=pd.read_json('https://covid19-livedata.herokuapp.com/api')
-
-df=df.T
-
- 
 barWidth = 0.25
+
+def getData(country):
+	locale.setlocale( locale.LC_ALL, 'en_US.UTF-8' )
+	url = 'https://www.worldometers.info/coronavirus/country/'+country
+	r = requests.get(url)
+	s = BeautifulSoup(r.text,'html.parser')
+	data = s.find_all("div",class_="maincounter-number")
+	casedata = [locale.atoi(data[i].text.strip()) for i in range(len(data))]
+	casedata.append(casedata[0]-casedata[1]-casedata[2]) # appending for active Cases
+	return casedata
+
+
  
-bars1=df['china'].tolist() #china
-bars2=df['italy'].tolist() #italy
-bars3=df['usa'].tolist()   #USA
-bars4=df['india'].tolist()  #India
+bars1=getData('china') #china
+bars2=getData('italy') #italy
+bars3=getData('us')   #USA
+bars4=getData('india')  #India
 
 print("""\
 ██████╗ ██████╗  ██████╗  ██████╗ ██████╗  █████╗ ███╗   ███╗    ██████╗ ██╗   ██╗    ██╗   ██╗███████╗ █████╗ ███╗   ███╗ █████╗ 
@@ -48,7 +58,7 @@ def annotate(r,b):
    		 plt.annotate(label, # this is the text
                  (x,y), # this is the point to label
                  textcoords="offset points", # how to position the text
-                 xytext=(0,1), # distance from text to points (x,y)
+                 xytext=(0,3), # distance from text to points (x,y)
                  ha='center')
 annotate(r1,bars1)
 annotate(r2,bars2)
